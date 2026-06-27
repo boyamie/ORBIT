@@ -1,86 +1,93 @@
 import cv2
 import time
 
-# 1. 학생들이 작성할 모듈 불러오기 (Import)
-from config import TRACKING_CONFIG                 # 기태 파트: 설정값
-from drone_controller import DroneController       # 운택 파트: 드론 제어
-from yolo_detector import YoloDetector             # 동권 파트: YOLO 비전
-from pid import PIDController                      # 기태 파트: PID 알고리즘
+# 학생들의 모듈 불러오기
+from config import TRACKING_CONFIG
+from drone_controller import DroneController
+from yolo_detector import YoloDetector
+from pid import PIDController
 
 def main():
-    print("🚀 ORBIT 시스템 초기화를 시작합니다...")
+    print("🚀 ORBIT 시스템 통합 테스트를 시작합니다...")
 
-    # 2. 각 모듈 객체 생성 (Initialization)
+    # 1. 각 모듈 객체 생성
     drone = DroneController()
-    detector = YoloDetector(model_path='yolov8n.pt')
-    
-    # PID 제어기 3개 생성 (상하, 좌우 회전, 전후진)
-    pid_yaw = PIDController(TRACKING_CONFIG['yaw']['kp'], TRACKING_CONFIG['yaw']['ki'], TRACKING_CONFIG['yaw']['kd'])
-    pid_updown = PIDController(TRACKING_CONFIG['Kp_updown'], TRACKING_CONFIG['Ki_updown'], TRACKING_CONFIG['Kd_updown'])
-    pid_forward = PIDController(TRACKING_CONFIG['Kp_forward'], TRACKING_CONFIG['Ki_forward'], TRACKING_CONFIG['Kd_forward'])
+    detector = YoloDetector(model_path='yolov8n.pt') # 같은 폴더에 yolov8n.pt 파일이 있어야 합니다.
 
-    # 3. 드론 연결 및 이륙
+    # 2. 기태 학생의 config 구조에 맞춘 PID 제어기 생성
+    pid_yaw = PIDController(TRACKING_CONFIG['yaw']['kp'], TRACKING_CONFIG['yaw']['ki'], TRACKING_CONFIG['yaw']['kd'])
+    pid_updown = PIDController(TRACKING_CONFIG['updown']['kp'], TRACKING_CONFIG['updown']['ki'], TRACKING_CONFIG['updown']['kd'])
+    pid_forward = PIDController(TRACKING_CONFIG['forward']['kp'], TRACKING_CONFIG['forward']['ki'], TRACKING_CONFIG['forward']['kd'])
+
+    # 3. 드론 연결 및 이륙 (운택 파트)
     if not drone.connect():
-        print("❌ 드론 연결에 실패했습니다. 프로그램을 종료합니다.")
+        print("❌ 드론 연결 실패. 프로그램을 종료합니다.")
         return
 
     drone.start_stream()
+    time.sleep(2) # 영상 스트리밍 안정화 대기
+    
     drone.takeoff()
-    time.sleep(2) # 이륙 후 안정화 대기
+    time.sleep(2) # 이륙 후 호버링 안정화 대기
 
-    print("✅ 이륙 완료! 자율 추적을 시작합니다. (종료하려면 'q' 입력)")
+    print("✅ 이륙 완료! 카메라에서 사람을 찾습니다. (종료하려면 화면을 클릭하고 'q' 입력)")
 
-    # 4. 메인 추적 루프 (Main Loop)
     try:
         while True:
-            # 4-1. 카메라 프레임 가져오기 (운택 파트)
+            # 4. 카메라 프레임 가져오기
             frame = drone.get_frame()
             if frame is None:
                 continue
 
-            # 4-2. YOLO로 타겟 찾기 (동권 파트)
-            # 타겟의 중심점(cx, cy)과 크기(area)를 반환받음
+            # 5. YOLO로 타겟(사람) 찾기 (동권 파트)
             target_info, processed_frame = detector.detect_target(frame)
 
-            # 4-3. 타겟이 화면에 있을 경우 PID 제어 수행 (기태 파트)
+            # 6. PID 제어 및 드론 이동 (기태 & 운택 파트 통합)
             if target_info:
                 cx, cy, area = target_info
                 
-                # 화면 중앙 좌표 계산
+                # 화면 중심점 구하기
                 frame_height, frame_width = processed_frame.shape[:2]
                 center_x, center_y = frame_width // 2, frame_height // 2
 
                 # 오차(Error) 계산
-                error_x = cx - center_x  # 좌우 오차
-                error_y = center_y - cy  # 상하 오차 (y축은 위로 갈수록 값이 작아지므로 반대로 뺌)
-                error_area = TRACKING_CONFIG['target_area'] - area # 거리(크기) 오차
+                error_x = cx - center_x           # 좌우 오차
+                error_y = center_y - cy           # 상하 오차 (y축은 위가 0이므로 반대 방향)
+                error_area = TRACKING_CONFIG['target_area'] - area # 거리 오차
 
-                # PID 알고리즘으로 이동 속도 계산
-                yaw_speed = pid_yaw.calculate(error_x)
-                updown_speed = pid_updown.calculate(error_y)
-                forward_speed = pid_forward.calculate(error_area)
+                # PID 알고리즘을 통한 이동 속도 도출 (정수형으로 변환)
+                yaw_speed = int(pid_yaw.calculate(error_x))
+                updown_speed = int(pid_updown.calculate(error_y))
+                forward_speed = int(pid_forward.calculate(error_area))
 
-                # 드론에게 이동 명령 전송 (운택 파트)
-                # send_rc_control(좌우, 전후진, 상하, 회전)
+                # 드론에 이동 명령 전송: send_command(좌우, 전후진, 상하, 회전)
+                # 좌우 이동(Roll)은 0으로 고정하고 회전(Yaw)으로 추적합니다.
                 drone.send_command(0, forward_speed, updown_speed, yaw_speed)
+                
+                # 터미널 대신 화면에 현재 제어값 출력 (디버깅용)
+                cv2.putText(processed_frame, f"Tracking: FWD({forward_speed}) UP({updown_speed}) YAW({yaw_speed})", 
+                            (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
             else:
-                # 타겟을 잃어버리면 제자리 비행 (Hovering)
+                # 사람을 놓치면 속도를 0으로 만들어 제자리 비행(Hovering)
                 drone.send_command(0, 0, 0, 0)
+                cv2.putText(processed_frame, "Target Lost - Hovering", 
+                            (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-            # 4-4. 화면 출력
-            cv2.imshow("ORBIT Tracking Viewer", processed_frame)
+            # 결과 화면 보여주기
+            cv2.imshow("ORBIT Vision", processed_frame)
 
-            # 'q' 키를 누르면 루프 종료
+            # 'q' 키를 누르면 루프 탈출
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     except Exception as e:
-        print(f"⚠️ 실행 중 오류 발생: {e}")
+        print(f"⚠️ 시스템 구동 중 오류 발생: {e}")
 
     finally:
-        # 5. 안전 종료 (착륙 및 자원 해제)
-        print("🛬 드론을 안전하게 착륙시키고 시스템을 종료합니다.")
+        # 7. 안전 종료 (가장 중요)
+        print("🛬 시스템을 종료하고 드론을 안전하게 착륙시킵니다.")
+        drone.send_command(0, 0, 0, 0) # 모든 모터 정지 명령
         drone.land()
         drone.stop_stream()
         cv2.destroyAllWindows()
