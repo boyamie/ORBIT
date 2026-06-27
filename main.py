@@ -15,7 +15,7 @@ def main():
     detector = YoloDetector(model_path='yolov8n.pt')
     
     # PID 제어기 3개 생성 (상하, 좌우 회전, 전후진)
-    pid_yaw = PIDController(TRACKING_CONFIG['Kp_yaw'], TRACKING_CONFIG['Ki_yaw'], TRACKING_CONFIG['Kd_yaw'])
+    pid_yaw = PIDController(TRACKING_CONFIG['yaw']['kp'], TRACKING_CONFIG['yaw']['ki'], TRACKING_CONFIG['yaw']['kd'])
     pid_updown = PIDController(TRACKING_CONFIG['Kp_updown'], TRACKING_CONFIG['Ki_updown'], TRACKING_CONFIG['Kd_updown'])
     pid_forward = PIDController(TRACKING_CONFIG['Kp_forward'], TRACKING_CONFIG['Ki_forward'], TRACKING_CONFIG['Kd_forward'])
 
