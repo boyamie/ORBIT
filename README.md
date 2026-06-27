@@ -1,7 +1,6 @@
 # 🛰️ ORBIT (Object Recognition & Intelligent Orbit Navigation)
 
-> **"위대한 비상을 위한 궤도, 미래 드론 기술의 시작점"**  
-> YOLO 기반 실시간 객체 인식 및 PID 제어를 활용한 DJI Tello 자율 추적 드론 프로젝트입니다.
+> **"위대한 비상을 위한 궤도, 미래 드론 기술의 시작점"** > YOLO 기반 실시간 객체 인식 및 PID 제어를 활용한 DJI Tello 자율 추적 드론 프로젝트입니다.
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Tello](https://img.shields.io/badge/Drone-DJI_Tello-orange)
@@ -26,7 +25,10 @@
 ## 📂 리포지토리 구조
 ```text
 ORBIT/
-├── main.py             # 드론 제어, YOLO 객체 탐지 및 PID 추적 메인 실행 파일
-├── config.py           # 드론 속도 제한 및 PID 튜닝 상수(Kp, Ki, Kd) 설정 파일
-├── requirements.txt    # 프로젝트 실행에 필요한 파이썬 패키지 목록
-└── README.md           # 프로젝트 안내 문서
+├── main.py                # 전체 시스템 조립 및 실행 파일 (직접 수정 최소화)
+├── drone_controller.py    # 드론 비행 명령 및 통신 모듈
+├── yolo_detector.py       # YOLO 비전 인식 모듈
+├── pid.py                 # PID 제어 오차 계산 모듈
+├── config.py              # 드론 속도 제한 및 PID 튜닝 상수 설정
+├── requirements.txt       # 프로젝트 실행에 필요한 패키지 목록
+└── README.md              # 프로젝트 안내 문서
