@@ -1,3 +1,5 @@
+from dbm import error
+
 from config import TRACKING_CONFIG
 
 
@@ -13,6 +15,7 @@ class PIDController:
 
     def calculate(self, error):
         self.integral += error
+        self.integral = max(min(self.integral, 1000), -1000)
 
         derivative = error - self.prev_error
 
