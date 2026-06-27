@@ -49,29 +49,27 @@ class DroneController:
             yaw
         )
 
-controller = DroneController()
 
-if controller.connect():
+if __name__ == "__main__":
 
-    controller.start_stream()
+    controller = DroneController()
 
-    time.sleep(2)
+    if controller.connect():
 
-    controller.takeoff()
+        controller.start_stream()
+        time.sleep(2)
 
-    # 앞으로 이동
-    controller.send_command(0, 30, 0, 0)
-    time.sleep(2)
+        controller.takeoff()
 
-    # 정지
-    controller.send_command(0, 0, 0, 0)
+        controller.send_command(0, 30, 0, 0)
+        time.sleep(2)
+        
+        controller.send_command(0, 0, 0, 0)
 
-    # 현재 프레임 가져오기
-    frame = controller.get_frame()
-    print(frame.shape)
+        frame = controller.get_frame()
+        print(frame.shape)
 
-    time.sleep(2)
+        time.sleep(2)
 
-    controller.land()
-
-    controller.stop_stream()
+        controller.land()
+        controller.stop_stream()
