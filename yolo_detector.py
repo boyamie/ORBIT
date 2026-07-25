@@ -1,3 +1,10 @@
+from ultralytics import YOLO
+import cv2
+
+class YoloDetector:
+    def __init__(self, model_path="models/yolov8n.pt"):
+        self.model = YOLO(model_path)
+
     def detect_target(self, frame):
         results = self.model(frame)
 
