@@ -19,7 +19,8 @@ class YoloDetector:
                 # 0번 클래스(사람)가 아니면 건너뛰기
                 if int(box.cls[0]) != 0:
                     continue
-
+                if float(box.conf[0]) < 0.5:
+                    continue
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 w = x2 - x1
                 h = y2 - y1
