@@ -24,7 +24,7 @@ def main():
     if not drone.connect():
         print("❌ 드론 연결 실패. 프로그램을 종료합니다.")
         return
-    battery = drone.get_battery()
+    battery = drone.battery()
     if battery < 30:
         print(f"[ERROR] 배터리가 부족하여 이륙할 수 없습니다. (현재 배터리: {battery}%)")
         drone.disconnect()
