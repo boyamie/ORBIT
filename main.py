@@ -20,19 +20,18 @@ def main():
     pid_forward = PIDController(TRACKING_CONFIG['forward']['kp'], TRACKING_CONFIG['forward']['ki'], TRACKING_CONFIG['forward']['kd'])
 
     # 3. 드론 연결 및 이륙 (운택 파트)
+
     if not drone.connect():
         print("❌ 드론 연결 실패. 프로그램을 종료합니다.")
         return
-
-        drone.start_stream()
-    time.sleep(2) # 영상 스트리밍 안정화 대기
-    
     battery = drone.get_battery()
     if battery < 30:
         print(f"[ERROR] 배터리가 부족하여 이륙할 수 없습니다. (현재 배터리: {battery}%)")
-        drone.stop_stream()  # 👈 스트림 정리 후 종료
         return
+    drone.start_stream()
+    time.sleep(2) # 영상 스트리밍 안정화 대기
 
+    input("Enter를 누르면 이륙합니다...")
     drone.takeoff()
     time.sleep(2) # 이륙 후 호버링 안정화 대기
 
