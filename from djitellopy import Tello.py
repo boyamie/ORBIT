@@ -38,6 +38,11 @@ class DroneController:
         print("Land")
         self.drone.land()
 
+    def rotate_360(self):
+        print("Rotate 360 Degrees")
+        # 시계 방향으로 360도 회전
+        self.drone.rotate_clockwise(360)
+
     def get_frame(self):
         return self.drone.get_frame_read().frame
 
@@ -60,19 +65,30 @@ if __name__ == "__main__":
         time.sleep(2)
 
         controller.takeoff()
+        time.sleep(2)
 
+        # 앞으로 이동
         controller.send_command(0, 30, 0, 0)
         time.sleep(2)
-        
-        controller.flip_forward()
-        time.sleep(3) 
-        
         controller.send_command(0, 0, 0, 0)
+        time.sleep(1)
+
+        # 제자리 360도 회전
+        controller.rotate_360()
+        time.sleep(2)
+
+        # 뒤로 이동
+        controller.send_command(0, -30, 0, 0)
+        time.sleep(2)
+        controller.send_command(0, 0, 0, 0)
+        time.sleep(1)
+
+        # 다시 제자리 360도 회전
+        controller.rotate_360()
+        time.sleep(2)
 
         frame = controller.get_frame()
         print(frame.shape)
-
-        time.sleep(2)
 
         controller.land()
         controller.stop_stream()
