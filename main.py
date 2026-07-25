@@ -27,11 +27,13 @@ def main():
     battery = drone.get_battery()
     if battery < 30:
         print(f"[ERROR] 배터리가 부족하여 이륙할 수 없습니다. (현재 배터리: {battery}%)")
+        drone.disconnect()
         return
     drone.start_stream()
     time.sleep(2) # 영상 스트리밍 안정화 대기
 
-    input("Enter를 누르면 이륙합니다...")
+    print("3초 후 이륙!")
+    time.sleep(3)
     drone.takeoff()
     time.sleep(2) # 이륙 후 호버링 안정화 대기
 
