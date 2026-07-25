@@ -26,7 +26,11 @@ def main():
 
     drone.start_stream()
     time.sleep(2) # 영상 스트리밍 안정화 대기
-    
+    battery = drone.get_battery()
+
+    if battery < 30:
+        print("배터리 부족")
+        return
     drone.takeoff()
     time.sleep(2) # 이륙 후 호버링 안정화 대기
 
