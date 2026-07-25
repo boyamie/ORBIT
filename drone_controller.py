@@ -22,7 +22,7 @@ class DroneController:
             print("Connection Failed:", e)
             return False
     def get_battery(self):
-        return self.tello.get_battery()
+        return self.drone.get_battery()
 
     def start_stream(self):
         print("Start Camera Stream")
