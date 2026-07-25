@@ -21,6 +21,20 @@ class DroneController:
         except Exception as e:
             print("Connection Failed:", e)
             return False
+    def disconnect(self):
+        print("Disconnect Tello Drone")
+
+        try:
+            # 혹시 비행 중이면 정지 명령
+            self.drone.send_rc_control(0, 0, 0, 0)
+
+            # 연결 종료
+            self.drone.end()
+
+            print("Tello disconnected")
+
+        except Exception as e:
+            print(f"Disconnect Failed: {e}")
     def get_battery(self):
         return self.drone.get_battery()
 

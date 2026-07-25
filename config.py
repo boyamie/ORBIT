@@ -18,7 +18,7 @@ TRACKING_CONFIG = {
     },
 
     
-    "target_area": 30000,
+    "target_area": 100000,
 
     
     "max_speed": 50,
