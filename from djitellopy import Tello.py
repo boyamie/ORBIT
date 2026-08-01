@@ -1,15 +1,15 @@
-import time
 from djitellopy import Tello
+import time
 
 
 class DroneController:
-
     def __init__(self):
         print("Create Tello object")
         self.drone = Tello()
 
     def connect(self):
         print("Connect to Tello Drone")
+
         try:
             self.drone.connect()
 
@@ -21,14 +21,6 @@ class DroneController:
         except Exception as e:
             print("Connection Failed:", e)
             return False
-
-    def get_battery(self):
-        """배터리 잔량 반환"""
-        return self.drone.get_battery()
-
-    def disconnect(self):
-        """드론 연결 종료"""
-        self.drone.end()
 
     def start_stream(self):
         print("Start Camera Stream")
@@ -48,6 +40,7 @@ class DroneController:
 
     def rotate_360(self):
         print("Rotate 360 Degrees")
+        # 시계 방향으로 360도 회전
         self.drone.rotate_clockwise(360)
 
     def get_frame(self):
@@ -58,50 +51,44 @@ class DroneController:
             left_right,
             forward_backward,
             up_down,
-            yaw,
+            yaw
         )
 
 
 if __name__ == "__main__":
+
     controller = DroneController()
 
     if controller.connect():
 
-        try:
+        controller.start_stream()
+        time.sleep(2)
 
-            controller.start_stream()
-            time.sleep(2)
+        controller.takeoff()
+        time.sleep(2)
 
-            controller.takeoff()
-            time.sleep(2)
+        # 앞으로 이동
+        controller.send_command(0, 30, 0, 0)
+        time.sleep(2)
+        controller.send_command(0, 0, 0, 0)
+        time.sleep(1)
 
-            controller.send_command(0, 30, 0, 0)
-            time.sleep(2)
+        # 제자리 360도 회전
+        controller.rotate_360()
+        time.sleep(2)
 
-            controller.send_command(0, 0, 0, 0)
-            time.sleep(1)
+        # 뒤로 이동
+        controller.send_command(0, -30, 0, 0)
+        time.sleep(2)
+        controller.send_command(0, 0, 0, 0)
+        time.sleep(1)
 
-            controller.rotate_360()
-            time.sleep(2)
+        # 다시 제자리 360도 회전
+        controller.rotate_360()
+        time.sleep(2)
 
-            controller.send_command(0, -30, 0, 0)
-            time.sleep(2)
+        frame = controller.get_frame()
+        print(frame.shape)
 
-            controller.send_command(0, 0, 0, 0)
-            time.sleep(1)
-
-            controller.rotate_360()
-            time.sleep(2)
-
-            frame = controller.get_frame()
-
-            if frame is not None:
-                print("Frame shape:", frame.shape)
-
-        except Exception as e:
-            print("An error occurred:", e)
-
-        finally:
-            controller.land()
-            controller.stop_stream()
-            controller.disconnect()
+        controller.land()
+        controller.stop_stream()
