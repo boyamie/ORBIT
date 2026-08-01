@@ -14,13 +14,14 @@ TRACKING_CONFIG = {
 
     "updown": {
         "kp": 0.50,
+
         "ki": 0.005,
         "kd": 0.30,
     },
 
 
     # 사람이 화면에서 차지하는 목표 면적
-    "target_area": 150000,
+    "target_area": 140000,
 
     # target_area ± tolerance 안에서는 전후 이동하지 않음
     "area_tolerance": 12000,
