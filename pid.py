@@ -14,13 +14,15 @@ class PIDController:
         self.filtered_derivative = 0.0
 
     def calculate(self, error, dt=0.033):
-        # 1. dt 예외 처리 보완 (Tello 카메라 프레임 속도에 현실적으로 맞춤)
-        # dt가 0 이하이거나, 0.2초(5 FPS 이하로 심하게 딜레이된 경우)를 넘어가면 0.033초(30 FPS)로 보정
+        # 1. dt 예외 처리 보완 및 프레임 스킵 대응
+        dt_corrupted = False
         if dt <= 0.0 or dt > 0.2:
             dt = 0.033
+            dt_corrupted = True  # 프레임이 심하게 지연/건너뛰어진 경우 표시
 
         # 2. 미분 항 계산 (LPF 적용)
-        if self.prev_error is None:
+        if self.prev_error is None or dt_corrupted:
+            # 프레임 간격이 너무 벌어진 경우 미분 튀는 현상을 막기 위해 0 처리
             raw_derivative = 0.0
             self.filtered_derivative = 0.0
         else:
@@ -34,6 +36,8 @@ class PIDController:
         if self.ki != 0:
             self.integral += error * dt
             i_term = self.ki * self.integral
+            
+            # Integral clamping
             if abs(i_term) > self.integral_max:
                 i_term = self.integral_max if i_term > 0 else -self.integral_max
                 self.integral = i_term / self.ki
