@@ -76,10 +76,18 @@ def main():
                             (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
             else:
-                # 사람을 놓치면 속도를 0으로 만들어 제자리 비행(Hovering)
-                drone.send_command(0, 0, 0, 0)
-                cv2.putText(processed_frame, "Target Lost - Hovering", 
-                            (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                # 사람을 놓치면 좌우 회전하며 탐색
+                drone.send_command(0, 0, 0, 20)
+
+                cv2.putText(
+                    processed_frame,
+                    "Target Lost - Searching...",
+                    (20, 40),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (0, 0, 255),
+                    2
+                )
 
             # 결과 화면 보여주기
             cv2.imshow("ORBIT Vision", processed_frame)
